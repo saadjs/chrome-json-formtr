@@ -1,0 +1,118 @@
+html {
+    background: var(--bg, #1e1e1e);
+    min-height: 100vh;
+}
+
+body {
+    background: var(--bg, #1e1e1e);
+    color: var(--fg, #d4d4d4);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+#json-format-viewer {
+    font-family:
+        ui-monospace, SFMono-Regular, Menlo, Monaco, "Cascadia Code",
+        "Roboto Mono", Consolas, "Courier New", monospace;
+    font-size: 16px;
+    line-height: 1.5;
+    background: var(--bg, #1e1e1e);
+    color: var(--fg, #d4d4d4);
+    margin: 0;
+    padding: 16px;
+    white-space: pre;
+    tab-size: 2;
+    min-height: calc(100vh - 32px);
+    --line-number-color: #858585;
+    --line-number-bg: #252526;
+    --json-key: #9cdcfe;
+    --json-string: #ce9178;
+    --json-number: #b5cea8;
+    --json-boolean: #569cd6;
+    --json-null: #569cd6;
+    --json-brace: #d4d4d4;
+}
+
+/* Settings gear icon */
+.json-settings-gear {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+    z-index: 1000;
+    padding: 8px;
+    border-radius: 6px;
+    background: rgba(128, 128, 128, 0.2);
+    border: 1px solid rgba(128, 128, 128, 0.3);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.json-settings-gear:hover {
+    opacity: 1;
+    background: rgba(128, 128, 128, 0.3);
+    border-color: rgba(128, 128, 128, 0.5);
+}
+
+.json-settings-gear svg {
+    width: 100%;
+    height: 100%;
+    fill: var(--fg, #d4d4d4);
+}
+
+#json-format-viewer.raw {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.json-line {
+    display: flex;
+}
+
+.json-line-number {
+    width: 3ch;
+    text-align: right;
+    color: var(--line-number-color);
+    background: var(--line-number-bg);
+    padding-right: 8px;
+    margin-right: 12px;
+    user-select: none;
+    -webkit-user-select: none;
+    position: sticky;
+    left: 0;
+}
+
+.json-line-content {
+    flex: 1;
+    white-space: pre;
+}
+
+/* JSON Syntax Highlighting */
+.json-key {
+    color: var(--json-key);
+}
+
+.json-string {
+    color: var(--json-string);
+}
+
+.json-number {
+    color: var(--json-number);
+}
+
+.json-boolean {
+    color: var(--json-boolean);
+}
+
+.json-null {
+    color: var(--json-null);
+}
+
+.json-brace {
+    color: var(--json-brace);
+}
