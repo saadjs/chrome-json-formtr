@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>JSON Formtr Settings</title>
+        <link rel="stylesheet" href="options.css" />
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>📄 JSON Formtr Settings</h1>
+                <p>Customize your JSON viewing experience</p>
+            </header>
+
+            <main>
+                <section class="setting-group">
+                    <h2>Theme</h2>
+                    <p class="description">
+                        Choose a color theme for JSON formatting
+                    </p>
+                    <div class="theme-grid">
+                        <label class="theme-option">
+                            <input
+                                type="radio"
+                                name="theme"
+                                value="dark"
+                                checked
+                            />
+                            <div class="theme-preview dark-theme">
+                                <div class="theme-name">One Dark</div>
+                                <div class="theme-sample">
+                                    <span class="line-number">1</span>
+                                    <span class="json-text"
+                                        >{ <span class="json-key">"name"</span>:
+                                        <span class="json-string">"value"</span>
+                                        }</span
+                                    >
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="theme-option">
+                            <input type="radio" name="theme" value="light" />
+                            <div class="theme-preview light-theme">
+                                <div class="theme-name">One Light</div>
+                                <div class="theme-sample">
+                                    <span class="line-number">1</span>
+                                    <span class="json-text"
+                                        >{ <span class="json-key">"name"</span>:
+                                        <span class="json-string">"value"</span>
+                                        }</span
+                                    >
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="setting-group">
+                    <h2>Font Size</h2>
+                    <p class="description">
+                        Adjust the font size for better readability
+                    </p>
+                    <div class="font-size-control">
+                        <label for="fontSize"
+                            >Font Size:
+                            <span id="fontSizeValue">16px</span></label
+                        >
+                        <input
+                            type="range"
+                            id="fontSize"
+                            min="12"
+                            max="24"
+                            value="16"
+                            step="1"
+                        />
+                        <div class="font-size-marks">
+                            <span>12px</span>
+                            <span>16px</span>
+                            <span>20px</span>
+                            <span>24px</span>
+                        </div>
+                    </div>
+                    <div class="font-preview">
+                        <div class="preview-text">
+                            <span class="line-number">1</span>
+                            <span
+                                >{ "example": "Preview text at current size"
+                                }</span
+                            >
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <footer>
+                <button id="resetBtn" class="reset-btn">
+                    Reset to Defaults
+                </button>
+            </footer>
+        </div>
+
+        <script src="options.js"></script>
+    </body>
+</html>
