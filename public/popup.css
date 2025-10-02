@@ -1,0 +1,226 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.4;
+    color: #e1e4e8;
+    background: #0d1117;
+    width: 320px;
+    overflow-x: hidden;
+}
+
+.popup-container {
+    background: #161b22;
+}
+
+header {
+    background: #21262d;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    border-bottom: 1px solid #30363d;
+}
+
+header h1 {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+main {
+    padding: 1rem;
+}
+
+.setting-section {
+    margin-bottom: 1.5rem;
+}
+
+.setting-section:last-child {
+    margin-bottom: 0;
+}
+
+.setting-section h2 {
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+    color: #f0f6fc;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Theme Selection */
+.theme-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.theme-option {
+    cursor: pointer;
+    display: block;
+}
+
+.theme-option input[type="radio"] {
+    display: none;
+}
+
+.theme-preview {
+    border: 2px solid #30363d;
+    border-radius: 6px;
+    padding: 0.75rem;
+    transition: all 0.2s ease;
+    font-family:
+        ui-monospace, SFMono-Regular, Menlo, Monaco, "Cascadia Code",
+        "Roboto Mono", Consolas, "Courier New", monospace;
+    background: #0d1117;
+}
+
+.theme-option input:checked + .theme-preview {
+    border-color: #58a6ff;
+    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.2);
+}
+
+.theme-preview:hover {
+    border-color: #58a6ff;
+}
+
+.theme-name {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #e1e4e8;
+    font-size: 0.85rem;
+}
+
+.theme-sample {
+    background: #1e1e1e;
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.dark-theme .theme-sample {
+    background: #1e1e1e;
+    color: #d4d4d4;
+}
+
+.dark-theme .json-key {
+    color: #9cdcfe;
+}
+
+.dark-theme .json-string {
+    color: #ce9178;
+}
+
+.light-theme .theme-sample {
+    background: #fafafa;
+    color: #383a42;
+    border: 1px solid #e5e5e6;
+}
+
+.light-theme .json-key {
+    color: #e45649;
+}
+
+.light-theme .json-string {
+    color: #50a14f;
+}
+
+/* Font Size Control */
+.font-size-control {
+    background: #21262d;
+    padding: 0.75rem;
+    border-radius: 6px;
+    border: 1px solid #30363d;
+}
+
+.font-size-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.font-size-header label {
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+#fontSizeValue {
+    font-weight: 600;
+    color: #58a6ff;
+    font-size: 0.85rem;
+}
+
+#fontSize {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: #30363d;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    margin-bottom: 0.5rem;
+}
+
+#fontSize::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #58a6ff;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+#fontSize::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #58a6ff;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.font-size-marks {
+    display: flex;
+    justify-content: space-between;
+    color: #8b949e;
+    font-size: 0.75rem;
+}
+
+/* Footer */
+footer {
+    background: #21262d;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid #30363d;
+    text-align: center;
+}
+
+.reset-btn {
+    background: #30363d;
+    color: #e1e4e8;
+    border: 1px solid #484f58;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.reset-btn:hover {
+    background: #484f58;
+    border-color: #656c76;
+}
+
+.reset-btn:active {
+    transform: translateY(1px);
+}

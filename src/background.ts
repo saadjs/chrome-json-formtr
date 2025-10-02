@@ -24,18 +24,3 @@ chrome.contextMenus?.onClicked.addListener((info) => {
         chrome.runtime.openOptionsPage();
     }
 });
-
-// Handle messages from content script
-chrome.runtime.onMessage?.addListener((message, sender, sendResponse) => {
-    if (message.type === 'OPEN_OPTIONS') {
-        try {
-            chrome.runtime.openOptionsPage();
-            sendResponse({ success: true });
-        } catch (error) {
-            console.error('[JSON Formtr Background] Could not open options page:', error);
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            sendResponse({ success: false, error: errorMessage });
-        }
-        return true; // Indicates we will send a response asynchronously
-    }
-});
