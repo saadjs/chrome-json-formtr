@@ -6,6 +6,10 @@
     "minimum_chrome_version": "114",
     "permissions": ["storage", "contextMenus"],
     "host_permissions": ["<all_urls>"],
+    "action": {
+        "default_popup": "popup.html",
+        "default_title": "JSON Formtr Settings"
+    },
     "background": {
         "service_worker": "background.js",
         "type": "module"

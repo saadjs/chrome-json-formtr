@@ -34,37 +34,6 @@ body {
     --json-brace: #d4d4d4;
 }
 
-/* Settings gear icon */
-.json-settings-gear {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    width: 24px;
-    height: 24px;
-    cursor: pointer;
-    opacity: 0.7;
-    transition: all 0.2s ease;
-    z-index: 1000;
-    padding: 8px;
-    border-radius: 6px;
-    background: rgba(128, 128, 128, 0.2);
-    border: 1px solid rgba(128, 128, 128, 0.3);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-}
-
-.json-settings-gear:hover {
-    opacity: 1;
-    background: rgba(128, 128, 128, 0.3);
-    border-color: rgba(128, 128, 128, 0.5);
-}
-
-.json-settings-gear svg {
-    width: 100%;
-    height: 100%;
-    fill: var(--fg, #d4d4d4);
-}
-
 #json-format-viewer.raw {
     white-space: pre-wrap;
     word-wrap: break-word;

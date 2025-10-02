@@ -1,5 +1,4 @@
 import cssText from './content_script.css?inline';
-import gearIcon from './icons/gear.svg?raw';
 import { getTheme, generateThemeCSS } from './themes.js';
 
 let showingRaw = false;
@@ -98,29 +97,7 @@ function buildFormattedViewer(formatted: string): HTMLElement {
     return viewer;
 }
 
-function createSettingsGear(): HTMLElement {
-    const gear = document.createElement('div');
-    gear.className = 'json-settings-gear';
-    gear.title = 'JSON Formtr Settings';
-    gear.innerHTML = gearIcon;
 
-    gear.addEventListener('click', () => {
-        try {
-            // Send message to background script to open options page
-            chrome.runtime.sendMessage({ type: 'OPEN_OPTIONS' }, (response) => {
-                if (chrome.runtime.lastError) {
-                    console.error('[JSON Formtr] Could not send message to background:', chrome.runtime.lastError);
-                } else if (response?.success) {
-                    console.log('[JSON Formtr] Options page opened successfully');
-                }
-            });
-        } catch (error) {
-            console.error('[JSON Formtr] Could not send message to background:', error);
-        }
-    });
-
-    return gear;
-}
 
 function toggleRawFormatted() {
     const viewer = document.getElementById('json-format-viewer');
@@ -142,12 +119,6 @@ function toggleRawFormatted() {
         viewer.replaceWith(rawViewer);
         showingRaw = true;
         console.log('[JSON Formtr] Switched to raw view');
-    }
-
-    // Ensure settings gear is always visible
-    if (!document.querySelector('.json-settings-gear')) {
-        const settingsGear = createSettingsGear();
-        document.body.appendChild(settingsGear);
     }
 }
 
@@ -191,10 +162,6 @@ function init() {
         const formatted = formatJson(originalText);
         const viewer = buildFormattedViewer(formatted);
         document.body.appendChild(viewer);
-
-        // Add settings gear icon
-        const settingsGear = createSettingsGear();
-        document.body.appendChild(settingsGear);
 
         // Set page title if generic
         if (document.title === '' || document.title === 'Application/JSON' || document.title.includes('localhost')) {
