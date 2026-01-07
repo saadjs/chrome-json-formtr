@@ -64,7 +64,7 @@ main {
 /* Theme Selection */
 .theme-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 1rem;
 }
 
@@ -139,6 +139,167 @@ main {
     color: #ce9178;
 }
 
+.solarized-dark-theme .theme-sample {
+    background: #002b36;
+    color: #839496;
+}
+
+.solarized-dark-theme .line-number {
+    color: #586e75;
+    background: #073642;
+    padding: 2px 8px;
+    margin-right: 8px;
+    border-radius: 2px;
+    min-width: 20px;
+    text-align: center;
+}
+
+.solarized-dark-theme .json-key {
+    color: #268bd2;
+}
+
+.solarized-dark-theme .json-string {
+    color: #2aa198;
+}
+
+.monokai-theme .theme-sample {
+    background: #272822;
+    color: #f8f8f2;
+}
+
+.monokai-theme .line-number {
+    color: #90908a;
+    background: #3e3d32;
+    padding: 2px 8px;
+    margin-right: 8px;
+    border-radius: 2px;
+    min-width: 20px;
+    text-align: center;
+}
+
+.monokai-theme .json-key {
+    color: #f92672;
+}
+
+.monokai-theme .json-string {
+    color: #e6db74;
+}
+
+.nord-theme .theme-sample {
+    background: #2e3440;
+    color: #d8dee9;
+}
+
+.nord-theme .line-number {
+    color: #4c566a;
+    background: #3b4252;
+    padding: 2px 8px;
+    margin-right: 8px;
+    border-radius: 2px;
+    min-width: 20px;
+    text-align: center;
+}
+
+.nord-theme .json-key {
+    color: #81a1c1;
+}
+
+.nord-theme .json-string {
+    color: #a3be8c;
+}
+
+.dracula-theme .theme-sample {
+    background: #282a36;
+    color: #f8f8f2;
+}
+
+.dracula-theme .line-number {
+    color: #6272a4;
+    background: #21222c;
+    padding: 2px 8px;
+    margin-right: 8px;
+    border-radius: 2px;
+    min-width: 20px;
+    text-align: center;
+}
+
+.dracula-theme .json-key {
+    color: #8be9fd;
+}
+
+.dracula-theme .json-string {
+    color: #f1fa8c;
+}
+
+.github-dark-theme .theme-sample {
+    background: #0d1117;
+    color: #c9d1d9;
+}
+
+.github-dark-theme .line-number {
+    color: #8b949e;
+    background: #161b22;
+    padding: 2px 8px;
+    margin-right: 8px;
+    border-radius: 2px;
+    min-width: 20px;
+    text-align: center;
+}
+
+.github-dark-theme .json-key {
+    color: #79c0ff;
+}
+
+.github-dark-theme .json-string {
+    color: #a5d6ff;
+}
+
+.gruvbox-dark-theme .theme-sample {
+    background: #282828;
+    color: #ebdbb2;
+}
+
+.gruvbox-dark-theme .line-number {
+    color: #928374;
+    background: #3c3836;
+    padding: 2px 8px;
+    margin-right: 8px;
+    border-radius: 2px;
+    min-width: 20px;
+    text-align: center;
+}
+
+.gruvbox-dark-theme .json-key {
+    color: #83a598;
+}
+
+.gruvbox-dark-theme .json-string {
+    color: #b8bb26;
+}
+
+.night-owl-theme .theme-sample {
+    background: #011627;
+    color: #d6deeb;
+}
+
+.night-owl-theme .line-number {
+    color: #5f7e97;
+    background: #01111d;
+    padding: 2px 8px;
+    margin-right: 8px;
+    border-radius: 2px;
+    min-width: 20px;
+    text-align: center;
+}
+
+.night-owl-theme .json-key {
+    color: #82aaff;
+}
+
+.night-owl-theme .json-string {
+    color: #c3e88d;
+}
+
 .light-theme .theme-sample {
     background: #fafafa;
     color: #383a42;
@@ -161,6 +322,54 @@ main {
 
 .light-theme .json-string {
     color: #50a14f;
+}
+
+.solarized-light-theme .theme-sample {
+    background: #fdf6e3;
+    color: #657b83;
+    border: 1px solid #eee8d5;
+}
+
+.solarized-light-theme .line-number {
+    color: #93a1a1;
+    background: #eee8d5;
+    padding: 2px 8px;
+    margin-right: 8px;
+    border-radius: 2px;
+    min-width: 20px;
+    text-align: center;
+}
+
+.solarized-light-theme .json-key {
+    color: #268bd2;
+}
+
+.solarized-light-theme .json-string {
+    color: #2aa198;
+}
+
+.github-light-theme .theme-sample {
+    background: #ffffff;
+    color: #24292f;
+    border: 1px solid #d0d7de;
+}
+
+.github-light-theme .line-number {
+    color: #57606a;
+    background: #f6f8fa;
+    padding: 2px 8px;
+    margin-right: 8px;
+    border-radius: 2px;
+    min-width: 20px;
+    text-align: center;
+}
+
+.github-light-theme .json-key {
+    color: #0550ae;
+}
+
+.github-light-theme .json-string {
+    color: #0a3069;
 }
 
 /* Font Size Control */
