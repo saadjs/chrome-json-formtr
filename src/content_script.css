@@ -21,7 +21,8 @@ body {
     color: var(--fg, #d4d4d4);
     margin: 0;
     padding: 16px;
-    white-space: pre;
+    white-space: pre-wrap;
+    word-wrap: break-word;
     tab-size: 2;
     min-height: calc(100vh - 32px);
     --line-number-color: #858585;
@@ -58,7 +59,8 @@ body {
 
 .json-line-content {
     flex: 1;
-    white-space: pre;
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 
 /* JSON Syntax Highlighting */
