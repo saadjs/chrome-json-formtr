@@ -4,6 +4,11 @@ import { getTheme, generateThemeCSS } from './themes.js';
 let showingRaw = false;
 let originalText = '';
 let currentSettings = { theme: 'dark', fontSize: 16 };
+let cachedFormattedHTML: string | null = null;
+let cachedFormattedText: string | null = null;
+let cachedFormattedLineCount = 0;
+let lineCountEl: HTMLElement | null = null;
+let toggleButton: HTMLButtonElement | null = null;
 
 function injectCSS() {
     const style = document.createElement('style');
@@ -56,6 +61,16 @@ function formatJson(text: string): string {
     } catch {
         return text;
     }
+}
+
+function formatLineCount(count: number): string {
+    const formattedCount = count.toLocaleString();
+    return count === 1 ? `${formattedCount} line` : `${formattedCount} lines`;
+}
+
+function countLines(text: string): number {
+    if (!text) return 0;
+    return text.split('\n').length;
 }
 
 function highlightJsonSyntax(jsonText: string): string {
@@ -147,14 +162,8 @@ function linkifyUrls(str: string): string {
     return `&quot;${linkified}&quot;`;
 }
 
-function buildFormattedViewer(formatted: string): HTMLElement {
+function buildFormattedHTML(formatted: string): { html: string; lineCount: number } {
     const lines = formatted.split('\n');
-    const digitCount = String(lines.length).length;
-
-    const viewer = document.createElement('div');
-    viewer.id = 'json-format-viewer';
-    viewer.style.setProperty('--line-number-width', `${digitCount}ch`);
-
     const html = lines
         .map((line, i) => {
             const highlightedLine = line === '' ? '\u200B' : highlightJsonSyntax(escapeHtml(line));
@@ -165,11 +174,150 @@ function buildFormattedViewer(formatted: string): HTMLElement {
         })
         .join('');
 
+    return { html, lineCount: lines.length };
+}
+
+function createFormattedViewer(html: string, lineCount: number): HTMLElement {
+    const viewer = document.createElement('div');
+    viewer.id = 'json-format-viewer';
+    viewer.style.setProperty('--line-number-width', `${String(lineCount).length}ch`);
     viewer.innerHTML = html;
     return viewer;
 }
 
+function ensureFormattedCache(): void {
+    if (cachedFormattedHTML && cachedFormattedText) return;
+    cachedFormattedText = formatJson(originalText);
+    const formatted = buildFormattedHTML(cachedFormattedText);
+    cachedFormattedHTML = formatted.html;
+    cachedFormattedLineCount = formatted.lineCount;
+}
 
+function updateLineCount(count: number): void {
+    if (lineCountEl) {
+        lineCountEl.textContent = formatLineCount(count);
+    }
+}
+
+function updateToggleLabel(): void {
+    if (toggleButton) {
+        toggleButton.textContent = showingRaw ? 'Formatted' : 'Raw';
+    }
+}
+
+function showToast(message: string): void {
+    const toast = document.createElement('div');
+    toast.className = 'json-formtr-toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    requestAnimationFrame(() => {
+        toast.classList.add('show');
+    });
+
+    window.setTimeout(() => {
+        toast.classList.remove('show');
+        window.setTimeout(() => toast.remove(), 250);
+    }, 1800);
+}
+
+async function copyFormattedToClipboard(): Promise<void> {
+    ensureFormattedCache();
+    if (!cachedFormattedText) return;
+
+    try {
+        await navigator.clipboard.writeText(cachedFormattedText);
+        showToast('Copied formatted JSON');
+    } catch {
+        const textarea = document.createElement('textarea');
+        textarea.value = cachedFormattedText;
+        textarea.setAttribute('readonly', 'true');
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            showToast('Copied formatted JSON');
+        } catch {
+            showToast('Copy failed');
+        } finally {
+            textarea.remove();
+        }
+    }
+}
+
+function getSmartFilename(): string {
+    let base = 'data';
+    try {
+        const url = new URL(window.location.href);
+        if (url.pathname && url.pathname !== '/') {
+            base = url.pathname.split('/').filter(Boolean).pop() || base;
+        } else if (url.hostname) {
+            base = url.hostname;
+        }
+    } catch {
+        // Ignore URL parsing errors.
+    }
+
+    const sanitized = base.replace(/[^a-zA-Z0-9-_]+/g, '-').replace(/^-+|-+$/g, '');
+    return `${sanitized || 'data'}.json`;
+}
+
+function downloadFormattedJson(): void {
+    ensureFormattedCache();
+    if (!cachedFormattedText) return;
+
+    const blob = new Blob([cachedFormattedText], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = getSmartFilename();
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    showToast('Downloaded JSON');
+}
+
+function createToolbar(): HTMLElement {
+    const toolbar = document.createElement('div');
+    toolbar.id = 'json-formtr-toolbar';
+
+    const left = document.createElement('div');
+    left.className = 'json-toolbar-left';
+    lineCountEl = document.createElement('span');
+    lineCountEl.id = 'json-formtr-line-count';
+    left.appendChild(lineCountEl);
+
+    const right = document.createElement('div');
+    right.className = 'json-toolbar-right';
+
+    const copyButton = document.createElement('button');
+    copyButton.className = 'json-toolbar-btn';
+    copyButton.type = 'button';
+    copyButton.textContent = 'Copy';
+    copyButton.addEventListener('click', () => {
+        void copyFormattedToClipboard();
+    });
+
+    const downloadButton = document.createElement('button');
+    downloadButton.className = 'json-toolbar-btn';
+    downloadButton.type = 'button';
+    downloadButton.textContent = 'Download';
+    downloadButton.addEventListener('click', downloadFormattedJson);
+
+    toggleButton = document.createElement('button');
+    toggleButton.className = 'json-toolbar-btn';
+    toggleButton.type = 'button';
+    toggleButton.addEventListener('click', toggleRawFormatted);
+
+    right.append(copyButton, downloadButton, toggleButton);
+    toolbar.append(left, right);
+
+    updateToggleLabel();
+    return toolbar;
+}
 
 function toggleRawFormatted() {
     const viewer = document.getElementById('json-format-viewer');
@@ -178,9 +326,14 @@ function toggleRawFormatted() {
 
     if (showingRaw) {
         // Switch to formatted
-        const formatted = buildFormattedViewer(formatJson(originalText));
-        viewer.replaceWith(formatted);
+        ensureFormattedCache();
+        if (cachedFormattedHTML) {
+            const formatted = createFormattedViewer(cachedFormattedHTML, cachedFormattedLineCount);
+            viewer.replaceWith(formatted);
+            updateLineCount(cachedFormattedLineCount);
+        }
         showingRaw = false;
+        updateToggleLabel();
         console.log('[JSON Formtr] Switched to formatted view');
     } else {
         // Switch to raw
@@ -190,6 +343,8 @@ function toggleRawFormatted() {
         rawViewer.textContent = originalText;
         viewer.replaceWith(rawViewer);
         showingRaw = true;
+        updateLineCount(countLines(originalText));
+        updateToggleLabel();
         console.log('[JSON Formtr] Switched to raw view');
     }
 }
@@ -230,10 +385,17 @@ function init() {
         // Clear body and add formatted content
         document.body.innerHTML = '';
 
+        // Create toolbar
+        const toolbar = createToolbar();
+        document.body.appendChild(toolbar);
+
         // Create and add formatted viewer
-        const formatted = formatJson(originalText);
-        const viewer = buildFormattedViewer(formatted);
+        ensureFormattedCache();
+        const viewer = cachedFormattedHTML
+            ? createFormattedViewer(cachedFormattedHTML, cachedFormattedLineCount)
+            : createFormattedViewer('', 0);
         document.body.appendChild(viewer);
+        updateLineCount(cachedFormattedLineCount);
 
         // Set page title if generic
         if (document.title === '' || document.title === 'Application/JSON' || document.title.includes('localhost')) {
