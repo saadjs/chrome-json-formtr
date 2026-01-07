@@ -108,7 +108,7 @@ function linkifyUrls(str: string): string {
 
     const inner = quotedValueMatch[1];
     // Match URLs inside the string value, but stop at whitespace or quotes.
-    const urlPattern = /(https?|ftp):\/\/[^\s"&]+|mailto:[^\s"&]+/g;
+    const urlPattern = /(https?|ftp):\/\/[^\s"]+|mailto:[^\s"]+/g;
     const linkified = inner.replace(urlPattern, (url) => {
         // Trim trailing punctuation that often wraps URLs while preserving balanced pairs.
         let trimmed = url;
