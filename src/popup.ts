@@ -1,6 +1,6 @@
 const DEFAULT_SETTINGS = {
-    theme: 'dark',
-    fontSize: 16
+    theme: "dark",
+    fontSize: 16,
 };
 
 let themeInputs: NodeListOf<HTMLInputElement>;
@@ -9,32 +9,34 @@ let fontSizeValue: HTMLElement;
 let resetBtn: HTMLButtonElement;
 
 // Initialize the popup
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener("DOMContentLoaded", init);
 
 function init() {
     // Get DOM elements
     themeInputs = document.querySelectorAll('input[name="theme"]');
-    fontSizeSlider = document.getElementById('fontSize') as HTMLInputElement;
-    fontSizeValue = document.getElementById('fontSizeValue') as HTMLElement;
-    resetBtn = document.getElementById('resetBtn') as HTMLButtonElement;
+    fontSizeSlider = document.getElementById("fontSize") as HTMLInputElement;
+    fontSizeValue = document.getElementById("fontSizeValue") as HTMLElement;
+    resetBtn = document.getElementById("resetBtn") as HTMLButtonElement;
 
     loadSettings();
 
     // Add event listeners
-    themeInputs.forEach(input => {
-        input.addEventListener('change', onThemeChange);
+    themeInputs.forEach((input) => {
+        input.addEventListener("change", onThemeChange);
     });
-    fontSizeSlider.addEventListener('input', onFontSizeChange);
-    fontSizeSlider.addEventListener('change', saveSettings);
-    resetBtn.addEventListener('click', resetToDefaults);
+    fontSizeSlider.addEventListener("input", onFontSizeChange);
+    fontSizeSlider.addEventListener("change", saveSettings);
+    resetBtn.addEventListener("click", resetToDefaults);
 
-    console.log('[JSON Formtr Popup] Initialized');
+    console.log("[JSON Formtr Popup] Initialized");
 }
 
 function loadSettings() {
     chrome.storage.sync.get(DEFAULT_SETTINGS, (settings) => {
         // Set theme
-        const themeInput = document.querySelector(`input[name="theme"][value="${settings.theme}"]`) as HTMLInputElement;
+        const themeInput = document.querySelector(
+            `input[name="theme"][value="${settings.theme}"]`
+        ) as HTMLInputElement;
         if (themeInput) {
             themeInput.checked = true;
         }
@@ -43,19 +45,21 @@ function loadSettings() {
         fontSizeSlider.value = settings.fontSize.toString();
         updateFontSizeDisplay(settings.fontSize);
 
-        console.log('[JSON Formtr Popup] Settings loaded:', settings);
+        console.log("[JSON Formtr Popup] Settings loaded:", settings);
     });
 }
 
 function saveSettings() {
-    const checkedTheme = document.querySelector('input[name="theme"]:checked') as HTMLInputElement;
+    const checkedTheme = document.querySelector(
+        'input[name="theme"]:checked'
+    ) as HTMLInputElement;
     const settings = {
         theme: checkedTheme?.value || DEFAULT_SETTINGS.theme,
-        fontSize: parseInt(fontSizeSlider.value, 10)
+        fontSize: parseInt(fontSizeSlider.value, 10),
     };
 
     chrome.storage.sync.set(settings, () => {
-        console.log('[JSON Formtr Popup] Settings saved:', settings);
+        console.log("[JSON Formtr Popup] Settings saved:", settings);
     });
 }
 
@@ -74,7 +78,9 @@ function updateFontSizeDisplay(fontSize: number) {
 
 function resetToDefaults() {
     // Set default theme
-    const defaultThemeInput = document.querySelector(`input[name="theme"][value="${DEFAULT_SETTINGS.theme}"]`) as HTMLInputElement;
+    const defaultThemeInput = document.querySelector(
+        `input[name="theme"][value="${DEFAULT_SETTINGS.theme}"]`
+    ) as HTMLInputElement;
     if (defaultThemeInput) {
         defaultThemeInput.checked = true;
     }
@@ -85,6 +91,6 @@ function resetToDefaults() {
 
     // Save defaults
     chrome.storage.sync.set(DEFAULT_SETTINGS, () => {
-        console.log('[JSON Formtr Popup] Settings reset to defaults');
+        console.log("[JSON Formtr Popup] Settings reset to defaults");
     });
 }

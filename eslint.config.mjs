@@ -6,7 +6,7 @@ import eslintConfigPrettier from "eslint-config-prettier/flat";
 
 export default tseslint.config(
     {
-        ignores: ["dist/**", "node_modules/**"]
+        ignores: ["dist/**", "node_modules/**"],
     },
     eslint.configs.recommended,
     tseslint.configs.strict,
