@@ -26,3 +26,19 @@ pnpm run dev          # Watch mode for development
 pnpm run build        # Build for prod
 pnpm run build:zip    # Create distributable zip file
 ```
+
+## Linkify examples
+
+Strings containing URLs are auto-linked, with safe trimming of trailing punctuation.
+
+```json
+{
+  "single": "https://example.com/path",
+  "embedded": "Docs: https://example.com/docs?ref=readme",
+  "wrapped": "(https://example.com/path)",
+  "balanced": "https://example.com/path()",
+  "trailing": "https://example.com/path),",
+  "email": "mailto:test@example.com?subject=Hi!",
+  "broken": "http://localhost: 8000/long-string"
+}
+```

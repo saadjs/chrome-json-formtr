@@ -21,13 +21,13 @@ body {
 header {
     background: #21262d;
     color: white;
-    padding: 1rem;
+    padding: 0.875rem 1rem;
     text-align: center;
     border-bottom: 1px solid #30363d;
 }
 
 header h1 {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 600;
 }
 
@@ -36,7 +36,7 @@ main {
 }
 
 .setting-section {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
 }
 
 .setting-section:last-child {
@@ -44,8 +44,8 @@ main {
 }
 
 .setting-section h2 {
-    font-size: 0.9rem;
-    margin-bottom: 0.75rem;
+    font-size: 0.8rem;
+    margin-bottom: 0.625rem;
     color: #f0f6fc;
     font-weight: 600;
     text-transform: uppercase;
@@ -54,8 +54,48 @@ main {
 
 /* Theme Selection */
 .theme-options {
-    display: flex;
-    flex-direction: column;
+    max-height: 280px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.theme-options::-webkit-scrollbar {
+    width: 6px;
+}
+
+.theme-options::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.theme-options::-webkit-scrollbar-thumb {
+    background: #484f58;
+    border-radius: 3px;
+}
+
+.theme-options::-webkit-scrollbar-thumb:hover {
+    background: #656c76;
+}
+
+.theme-category {
+    margin-bottom: 0.75rem;
+}
+
+.theme-category:last-child {
+    margin-bottom: 0;
+}
+
+.theme-category h3 {
+    font-size: 0.7rem;
+    color: #8b949e;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+.theme-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 0.5rem;
 }
 
@@ -71,7 +111,7 @@ main {
 .theme-preview {
     border: 2px solid #30363d;
     border-radius: 6px;
-    padding: 0.75rem;
+    padding: 0.5rem;
     transition: all 0.2s ease;
     font-family:
         ui-monospace, SFMono-Regular, Menlo, Monaco, "Cascadia Code",
@@ -90,46 +130,102 @@ main {
 
 .theme-name {
     font-weight: 600;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.35rem;
     font-family:
         -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     color: #e1e4e8;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
 }
 
 .theme-sample {
-    background: #1e1e1e;
-    padding: 0.5rem;
-    border-radius: 4px;
-    font-size: 12px;
+    padding: 0.35rem 0.4rem;
+    border-radius: 3px;
+    font-size: 10px;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
+/* Dark Themes */
 .dark-theme .theme-sample {
     background: #1e1e1e;
     color: #d4d4d4;
 }
+.dark-theme .json-key { color: #9cdcfe; }
+.dark-theme .json-string { color: #ce9178; }
 
-.dark-theme .json-key {
-    color: #9cdcfe;
+.solarized-dark-theme .theme-sample {
+    background: #002b36;
+    color: #839496;
 }
+.solarized-dark-theme .json-key { color: #268bd2; }
+.solarized-dark-theme .json-string { color: #2aa198; }
 
-.dark-theme .json-string {
-    color: #ce9178;
+.monokai-theme .theme-sample {
+    background: #272822;
+    color: #f8f8f2;
 }
+.monokai-theme .json-key { color: #f92672; }
+.monokai-theme .json-string { color: #e6db74; }
 
+.nord-theme .theme-sample {
+    background: #2e3440;
+    color: #d8dee9;
+}
+.nord-theme .json-key { color: #81a1c1; }
+.nord-theme .json-string { color: #a3be8c; }
+
+.dracula-theme .theme-sample {
+    background: #282a36;
+    color: #f8f8f2;
+}
+.dracula-theme .json-key { color: #8be9fd; }
+.dracula-theme .json-string { color: #f1fa8c; }
+
+.github-dark-theme .theme-sample {
+    background: #0d1117;
+    color: #c9d1d9;
+}
+.github-dark-theme .json-key { color: #79c0ff; }
+.github-dark-theme .json-string { color: #a5d6ff; }
+
+.gruvbox-dark-theme .theme-sample {
+    background: #282828;
+    color: #ebdbb2;
+}
+.gruvbox-dark-theme .json-key { color: #83a598; }
+.gruvbox-dark-theme .json-string { color: #b8bb26; }
+
+.night-owl-theme .theme-sample {
+    background: #011627;
+    color: #d6deeb;
+}
+.night-owl-theme .json-key { color: #82aaff; }
+.night-owl-theme .json-string { color: #c3e88d; }
+
+/* Light Themes */
 .light-theme .theme-sample {
     background: #fafafa;
     color: #383a42;
     border: 1px solid #e5e5e6;
 }
+.light-theme .json-key { color: #e45649; }
+.light-theme .json-string { color: #50a14f; }
 
-.light-theme .json-key {
-    color: #e45649;
+.solarized-light-theme .theme-sample {
+    background: #fdf6e3;
+    color: #657b83;
+    border: 1px solid #eee8d5;
 }
+.solarized-light-theme .json-key { color: #268bd2; }
+.solarized-light-theme .json-string { color: #2aa198; }
 
-.light-theme .json-string {
-    color: #50a14f;
+.github-light-theme .theme-sample {
+    background: #ffffff;
+    color: #24292f;
+    border: 1px solid #d0d7de;
 }
+.github-light-theme .json-key { color: #0550ae; }
+.github-light-theme .json-string { color: #0a3069; }
 
 /* Font Size Control */
 .font-size-control {
@@ -177,6 +273,11 @@ main {
     background: #58a6ff;
     cursor: pointer;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    transition: transform 0.15s ease;
+}
+
+#fontSize::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
 }
 
 #fontSize::-moz-range-thumb {
@@ -214,6 +315,8 @@ footer {
     font-size: 0.85rem;
     transition: all 0.2s ease;
     width: 100%;
+    position: relative;
+    overflow: hidden;
 }
 
 .reset-btn:hover {
@@ -221,6 +324,21 @@ footer {
     border-color: #656c76;
 }
 
+.reset-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, rgba(88, 166, 255, 0.35) 0%, rgba(88, 166, 255, 0) 60%);
+    opacity: 0;
+    transform: scale(0.6);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
 .reset-btn:active {
     transform: translateY(1px);
+}
+
+.reset-btn:active::after {
+    opacity: 1;
+    transform: scale(1);
 }

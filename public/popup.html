@@ -9,45 +9,132 @@
     <body>
         <div class="popup-container">
             <header>
-                <h1>📄 JSON Formtr</h1>
+                <h1>JSON Formtr</h1>
             </header>
 
             <main>
                 <section class="setting-section">
                     <h2>Theme</h2>
                     <div class="theme-options">
-                        <label class="theme-option">
-                            <input
-                                type="radio"
-                                name="theme"
-                                value="dark"
-                                checked
-                            />
-                            <div class="theme-preview dark-theme">
-                                <div class="theme-name">One Dark</div>
-                                <div class="theme-sample">
-                                    <span class="json-text"
-                                        >{ <span class="json-key">"key"</span>:
-                                        <span class="json-string">"value"</span>
-                                        }</span
-                                    >
-                                </div>
-                            </div>
-                        </label>
+                        <div class="theme-category">
+                            <h3>Dark</h3>
+                            <div class="theme-grid">
+                                <label class="theme-option">
+                                    <input type="radio" name="theme" value="dark" checked />
+                                    <div class="theme-preview dark-theme">
+                                        <div class="theme-name">One Dark</div>
+                                        <div class="theme-sample">
+                                            <span class="json-key">"key"</span>: <span class="json-string">"val"</span>
+                                        </div>
+                                    </div>
+                                </label>
 
-                        <label class="theme-option">
-                            <input type="radio" name="theme" value="light" />
-                            <div class="theme-preview light-theme">
-                                <div class="theme-name">One Light</div>
-                                <div class="theme-sample">
-                                    <span class="json-text"
-                                        >{ <span class="json-key">"key"</span>:
-                                        <span class="json-string">"value"</span>
-                                        }</span
-                                    >
-                                </div>
+                                <label class="theme-option">
+                                    <input type="radio" name="theme" value="solarizedDark" />
+                                    <div class="theme-preview solarized-dark-theme">
+                                        <div class="theme-name">Solarized</div>
+                                        <div class="theme-sample">
+                                            <span class="json-key">"key"</span>: <span class="json-string">"val"</span>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="theme-option">
+                                    <input type="radio" name="theme" value="monokai" />
+                                    <div class="theme-preview monokai-theme">
+                                        <div class="theme-name">Monokai</div>
+                                        <div class="theme-sample">
+                                            <span class="json-key">"key"</span>: <span class="json-string">"val"</span>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="theme-option">
+                                    <input type="radio" name="theme" value="nord" />
+                                    <div class="theme-preview nord-theme">
+                                        <div class="theme-name">Nord</div>
+                                        <div class="theme-sample">
+                                            <span class="json-key">"key"</span>: <span class="json-string">"val"</span>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="theme-option">
+                                    <input type="radio" name="theme" value="dracula" />
+                                    <div class="theme-preview dracula-theme">
+                                        <div class="theme-name">Dracula</div>
+                                        <div class="theme-sample">
+                                            <span class="json-key">"key"</span>: <span class="json-string">"val"</span>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="theme-option">
+                                    <input type="radio" name="theme" value="githubDark" />
+                                    <div class="theme-preview github-dark-theme">
+                                        <div class="theme-name">GitHub</div>
+                                        <div class="theme-sample">
+                                            <span class="json-key">"key"</span>: <span class="json-string">"val"</span>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="theme-option">
+                                    <input type="radio" name="theme" value="gruvboxDark" />
+                                    <div class="theme-preview gruvbox-dark-theme">
+                                        <div class="theme-name">Gruvbox</div>
+                                        <div class="theme-sample">
+                                            <span class="json-key">"key"</span>: <span class="json-string">"val"</span>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="theme-option">
+                                    <input type="radio" name="theme" value="nightOwl" />
+                                    <div class="theme-preview night-owl-theme">
+                                        <div class="theme-name">Night Owl</div>
+                                        <div class="theme-sample">
+                                            <span class="json-key">"key"</span>: <span class="json-string">"val"</span>
+                                        </div>
+                                    </div>
+                                </label>
                             </div>
-                        </label>
+                        </div>
+
+                        <div class="theme-category">
+                            <h3>Light</h3>
+                            <div class="theme-grid">
+                                <label class="theme-option">
+                                    <input type="radio" name="theme" value="light" />
+                                    <div class="theme-preview light-theme">
+                                        <div class="theme-name">One Light</div>
+                                        <div class="theme-sample">
+                                            <span class="json-key">"key"</span>: <span class="json-string">"val"</span>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="theme-option">
+                                    <input type="radio" name="theme" value="solarizedLight" />
+                                    <div class="theme-preview solarized-light-theme">
+                                        <div class="theme-name">Solarized</div>
+                                        <div class="theme-sample">
+                                            <span class="json-key">"key"</span>: <span class="json-string">"val"</span>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="theme-option">
+                                    <input type="radio" name="theme" value="githubLight" />
+                                    <div class="theme-preview github-light-theme">
+                                        <div class="theme-name">GitHub</div>
+                                        <div class="theme-sample">
+                                            <span class="json-key">"key"</span>: <span class="json-string">"val"</span>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
