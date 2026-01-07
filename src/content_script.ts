@@ -59,13 +59,23 @@ function formatJson(text: string): string {
 }
 
 function highlightJsonSyntax(jsonText: string): string {
+    // Note: Input is already HTML-escaped, so quotes are &quot;
     return jsonText
-        .replace(/(".*?")\s*:/g, '<span class="json-key">$1</span>:')
-        .replace(/:\s*(".*?")/g, ': <span class="json-string">$1</span>')
+        .replace(/(&quot;.*?&quot;)\s*:/g, '<span class="json-key">$1</span>:')
+        .replace(/:\s*(&quot;.*?&quot;)/g, (_, str) => {
+            // Apply URL linkification to string values
+            const linkified = linkifyUrls(str);
+            return `: <span class="json-string">${linkified}</span>`;
+        })
         .replace(/:\s*(-?\d+\.?\d*)/g, ': <span class="json-number">$1</span>')
         .replace(/:\s*(true|false)/g, ': <span class="json-boolean">$1</span>')
         .replace(/:\s*(null)/g, ': <span class="json-null">$1</span>')
-        .replace(/([{}[\]])/g, '<span class="json-brace">$1</span>');
+        .replace(/([{}[\]])/g, '<span class="json-brace">$1</span>')
+        // Match array string values: standalone strings at start of line (not keys)
+        .replace(/^(\s*)(&quot;.*?&quot;)(?!\s*:)/g, (_, ws, str) => {
+            const linkified = linkifyUrls(str);
+            return `${ws}<span class="json-string">${linkified}</span>`;
+        });
 }
 
 function escapeHtml(str: string): string {
@@ -77,11 +87,73 @@ function escapeHtml(str: string): string {
         .replace(/'/g, '&#39;');
 }
 
+function linkifyUrls(str: string): string {
+    const quotedValueMatch = str.match(/^&quot;(.*)&quot;$/);
+    if (!quotedValueMatch) return str;
+
+    const inner = quotedValueMatch[1];
+    // Match URLs inside the string value, but stop at whitespace or quotes.
+    const urlPattern = /(https?|ftp):\/\/[^\s"&]+|mailto:[^\s"&]+/g;
+    const linkified = inner.replace(urlPattern, (url) => {
+        // Trim trailing punctuation that often wraps URLs while preserving balanced pairs.
+        let trimmed = url;
+        let openParen = 0;
+        let closeParen = 0;
+        let openBracket = 0;
+        let closeBracket = 0;
+        let openBrace = 0;
+        let closeBrace = 0;
+
+        for (const ch of trimmed) {
+            if (ch === '(') openParen += 1;
+            else if (ch === ')') closeParen += 1;
+            else if (ch === '[') openBracket += 1;
+            else if (ch === ']') closeBracket += 1;
+            else if (ch === '{') openBrace += 1;
+            else if (ch === '}') closeBrace += 1;
+        }
+
+        while (trimmed.length > 0) {
+            const last = trimmed[trimmed.length - 1];
+            if (last === ')' && closeParen > openParen) {
+                trimmed = trimmed.slice(0, -1);
+                closeParen -= 1;
+                continue;
+            }
+            if (last === ']' && closeBracket > openBracket) {
+                trimmed = trimmed.slice(0, -1);
+                closeBracket -= 1;
+                continue;
+            }
+            if (last === '}' && closeBrace > openBrace) {
+                trimmed = trimmed.slice(0, -1);
+                closeBrace -= 1;
+                continue;
+            }
+            if (last === '.' || last === ',' || last === '!' || last === '?' || last === ';' || last === ':' || last === '"' || last === "'") {
+                trimmed = trimmed.slice(0, -1);
+                continue;
+            }
+            break;
+        }
+
+        const trailing = url.slice(trimmed.length);
+        if (trimmed.length === 0) return url;
+        // Decode HTML entities for href, keep escaped version for display
+        const hrefUrl = trimmed.replace(/&amp;/g, '&');
+        return `<a href="${hrefUrl}" class="json-link" target="_blank" rel="noopener noreferrer">${trimmed}</a>${trailing}`;
+    });
+
+    return `&quot;${linkified}&quot;`;
+}
+
 function buildFormattedViewer(formatted: string): HTMLElement {
     const lines = formatted.split('\n');
+    const digitCount = String(lines.length).length;
 
     const viewer = document.createElement('div');
     viewer.id = 'json-format-viewer';
+    viewer.style.setProperty('--line-number-width', `${digitCount}ch`);
 
     const html = lines
         .map((line, i) => {

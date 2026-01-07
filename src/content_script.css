@@ -42,10 +42,11 @@ body {
 
 .json-line {
     display: flex;
+    align-items: flex-start;
 }
 
 .json-line-number {
-    width: 3ch;
+    width: var(--line-number-width, 3ch);
     text-align: right;
     color: var(--line-number-color);
     background: var(--line-number-bg);
@@ -59,8 +60,10 @@ body {
 
 .json-line-content {
     flex: 1;
+    min-width: 0;
     white-space: pre-wrap;
-    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-all;
 }
 
 /* JSON Syntax Highlighting */
@@ -86,4 +89,14 @@ body {
 
 .json-brace {
     color: var(--json-brace);
+}
+
+.json-link {
+    color: var(--json-string);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.json-link:hover {
+    opacity: 0.8;
 }
