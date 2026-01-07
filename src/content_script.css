@@ -1,7 +1,9 @@
 html {
     background: var(--bg, #1e1e1e);
     min-height: 100vh;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition:
+        background-color 0.3s ease,
+        color 0.3s ease;
 }
 
 body {
@@ -10,7 +12,9 @@ body {
     margin: 0;
     padding: 0;
     min-height: 100vh;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition:
+        background-color 0.3s ease,
+        color 0.3s ease;
 }
 
 #json-formtr-toolbar {
@@ -21,10 +25,9 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 10px 16px;
-    background: var(--bg, #1e1e1e);
     background: color-mix(in srgb, var(--bg, #1e1e1e) 92%, #000 8%);
-    border-bottom: 1px solid rgba(127, 127, 127, 0.2);
-    border-bottom: 1px solid color-mix(in srgb, var(--fg, #d4d4d4) 15%, transparent);
+    border-bottom: 1px solid
+        color-mix(in srgb, var(--fg, #d4d4d4) 15%, transparent);
     backdrop-filter: blur(6px);
 }
 
@@ -43,20 +46,20 @@ body {
 }
 
 .json-toolbar-btn {
-    border: 1px solid rgba(127, 127, 127, 0.35);
     border: 1px solid color-mix(in srgb, var(--fg, #d4d4d4) 20%, transparent);
-    background: var(--bg, #1e1e1e);
     background: color-mix(in srgb, var(--bg, #1e1e1e) 85%, #000 15%);
     color: var(--fg, #d4d4d4);
     font-size: 12px;
     padding: 6px 10px;
     border-radius: 6px;
     cursor: pointer;
-    transition: transform 0.15s ease, border-color 0.2s ease, background-color 0.2s ease;
+    transition:
+        transform 0.15s ease,
+        border-color 0.2s ease,
+        background-color 0.2s ease;
 }
 
 .json-toolbar-btn:hover {
-    border-color: rgba(200, 200, 200, 0.5);
     border-color: color-mix(in srgb, var(--fg, #d4d4d4) 45%, transparent);
 }
 
@@ -86,7 +89,9 @@ body {
     --json-boolean: #569cd6;
     --json-null: #569cd6;
     --json-brace: #d4d4d4;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition:
+        background-color 0.3s ease,
+        color 0.3s ease;
 }
 
 #json-format-viewer.raw {
@@ -154,9 +159,15 @@ body {
     color: var(--json-string);
     text-decoration: underline;
     cursor: pointer;
-    transition: color 0.2s ease, opacity 0.2s ease, text-decoration-color 0.2s ease;
-    text-decoration-color: rgba(127, 127, 127, 0.5);
-    text-decoration-color: color-mix(in srgb, var(--json-string) 50%, transparent);
+    transition:
+        color 0.2s ease,
+        opacity 0.2s ease,
+        text-decoration-color 0.2s ease;
+    text-decoration-color: color-mix(
+        in srgb,
+        var(--json-string) 50%,
+        transparent
+    );
 }
 
 .json-link:hover {
@@ -168,17 +179,17 @@ body {
     position: fixed;
     right: 16px;
     bottom: 16px;
-    background: var(--bg, #1e1e1e);
     background: color-mix(in srgb, var(--bg, #1e1e1e) 85%, #000 15%);
     color: var(--fg, #d4d4d4);
-    border: 1px solid rgba(127, 127, 127, 0.35);
     border: 1px solid color-mix(in srgb, var(--fg, #d4d4d4) 20%, transparent);
     padding: 10px 14px;
     border-radius: 8px;
     font-size: 12px;
     opacity: 0;
     transform: translateY(8px);
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease;
     z-index: 30;
 }
 
