@@ -1,6 +1,6 @@
 {
     "name": "chrome-json-formtr",
-    "version": "1.0.0",
+    "version": "3.0.0",
     "type": "module",
     "description": "Simple extension to format JSON responses in Chrome",
     "scripts": {
