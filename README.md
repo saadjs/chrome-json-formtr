@@ -33,12 +33,12 @@ Strings containing URLs are auto-linked, with safe trimming of trailing punctuat
 
 ```json
 {
-  "single": "https://example.com/path",
-  "embedded": "Docs: https://example.com/docs?ref=readme",
-  "wrapped": "(https://example.com/path)",
-  "balanced": "https://example.com/path()",
-  "trailing": "https://example.com/path),",
-  "email": "mailto:test@example.com?subject=Hi!",
-  "broken": "http://localhost: 8000/long-string"
+    "single": "https://example.com/path",
+    "embedded": "Docs: https://example.com/docs?ref=readme",
+    "wrapped": "(https://example.com/path)",
+    "balanced": "https://example.com/path()",
+    "trailing": "https://example.com/path),",
+    "email": "mailto:test@example.com?subject=Hi!",
+    "broken": "http://localhost: 8000/long-string"
 }
 ```
