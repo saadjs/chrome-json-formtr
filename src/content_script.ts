@@ -1,5 +1,14 @@
 import cssText from "./content_script.css?inline";
 import { getTheme, generateThemeCSS } from "./themes.js";
+import {
+    buildTextFromIntervals as buildTextFromIntervalsImpl,
+    expandIntervalsForCollapsedStarts as expandIntervalsForCollapsedStartsImpl,
+    getLineNoFromNode as getLineNoFromNodeImpl,
+    getSelectedLineIntervals as getSelectedLineIntervalsImpl,
+    type FoldOpen,
+    type FoldRange,
+    type LineInterval,
+} from "./fold_copy.js";
 
 let showingRaw = false;
 let originalText = "";
@@ -13,16 +22,6 @@ let lineCountEl: HTMLElement | null = null;
 let toggleButton: HTMLButtonElement | null = null;
 let collapseAllButton: HTMLButtonElement | null = null;
 let expandAllButton: HTMLButtonElement | null = null;
-
-type FoldOpen = "{" | "[";
-type FoldClose = "}" | "]";
-type FoldRange = {
-    startLine: number;
-    endLine: number;
-    open: FoldOpen;
-    close: FoldClose;
-    collapsedLineContentHTML: string;
-};
 
 type JsonViewerEl = HTMLElement & {
     __jsonFormtrLineEls?: HTMLElement[];
@@ -214,14 +213,15 @@ function buildFormattedHTML(formatted: string): {
     const lineContentHTML: string[] = new Array(lines.length);
     const html = lines
         .map((line, i) => {
-            const highlightedLine = line === "" ? "\u200B" : highlightJsonSyntax(escapeHtml(line));
+            const highlightedLine =
+                line === "" ? "\u200B" : highlightJsonSyntax(escapeHtml(line));
             lineContentHTML[i] = highlightedLine;
             const lineNo = i + 1;
             const hasFold = foldRanges.has(lineNo);
             const foldToggle = hasFold
                 ? `<button class="json-fold-toggle" type="button" data-fold-start="${lineNo}" aria-label="Collapse section" aria-expanded="true"></button>`
                 : `<span class="json-fold-spacer" aria-hidden="true"></span>`;
-            return `<div class="json-line">
+            return `<div class="json-line" data-line-no="${lineNo}">
                 <span class="json-line-number">${foldToggle}<span class="json-line-num">${lineNo}</span></span>
                 <span class="json-line-content">${highlightedLine}</span>
             </div>`;
@@ -236,16 +236,19 @@ function createFormattedViewer(html: string, lineCount: number): HTMLElement {
     viewer.id = "json-format-viewer";
     const digits = String(lineCount).length;
     // Account for: toggle (16px + 6px gap) + digits + padding
-    viewer.style.setProperty(
-        "--line-number-width",
-        `calc(22px + ${digits}ch)`
-    );
+    viewer.style.setProperty("--line-number-width", `calc(22px + ${digits}ch)`);
     viewer.innerHTML = html;
     return viewer;
 }
 
 function ensureFormattedCache(): void {
-    if (cachedFormattedHTML && cachedFormattedText && cachedFormattedLineContentHTML && cachedFoldRanges) return;
+    if (
+        cachedFormattedHTML &&
+        cachedFormattedText &&
+        cachedFormattedLineContentHTML &&
+        cachedFoldRanges
+    )
+        return;
     cachedFormattedText = formatJson(originalText);
     cachedFoldRanges = computeFoldRanges(cachedFormattedText);
     const formatted = buildFormattedHTML(cachedFormattedText);
@@ -389,7 +392,13 @@ function createToolbar(): HTMLElement {
     toggleButton.type = "button";
     toggleButton.addEventListener("click", toggleRawFormatted);
 
-    right.append(copyButton, downloadButton, collapseAllButton, expandAllButton, toggleButton);
+    right.append(
+        copyButton,
+        downloadButton,
+        collapseAllButton,
+        expandAllButton,
+        toggleButton
+    );
     toolbar.append(left, right);
 
     updateToggleLabel();
@@ -508,6 +517,7 @@ function init() {
             },
             true
         );
+        document.addEventListener("copy", handleFormattedViewerCopy, true);
 
         // Listen for background command message
         try {
@@ -564,7 +574,8 @@ if (document.readyState === "loading") {
 }
 
 function updateFoldButtonsState(): void {
-    const foldEnabled = !showingRaw && !!cachedFoldRanges && cachedFoldRanges.size > 0;
+    const foldEnabled =
+        !showingRaw && !!cachedFoldRanges && cachedFoldRanges.size > 0;
     if (collapseAllButton) collapseAllButton.disabled = !foldEnabled;
     if (expandAllButton) expandAllButton.disabled = !foldEnabled;
 }
@@ -572,8 +583,97 @@ function updateFoldButtonsState(): void {
 function getFormattedViewerElement(): HTMLElement | null {
     const viewer = document.getElementById("json-format-viewer");
     if (!viewer) return null;
-    if (viewer.tagName === "PRE" || viewer.classList.contains("raw")) return null;
+    if (viewer.tagName === "PRE" || viewer.classList.contains("raw"))
+        return null;
     return viewer as HTMLElement;
+}
+
+function getLineNoFromNode(node: Node | null): number | null {
+    return getLineNoFromNodeImpl(node);
+}
+
+function getSelectedLineIntervals(
+    selection: Selection,
+    viewer: HTMLElement
+): LineInterval[] {
+    return getSelectedLineIntervalsImpl(selection, viewer);
+}
+
+function expandIntervalsForCollapsedStarts(
+    intervals: LineInterval[],
+    foldRanges: ReadonlyMap<number, FoldRange>,
+    collapsedStarts: ReadonlySet<number>
+): LineInterval[] {
+    return expandIntervalsForCollapsedStartsImpl(
+        intervals,
+        foldRanges,
+        collapsedStarts
+    );
+}
+
+function buildTextFromIntervals(
+    formattedLines: string[],
+    intervals: LineInterval[]
+): string {
+    return buildTextFromIntervalsImpl(formattedLines, intervals);
+}
+
+function resolveCopyTextForSelection(input: {
+    showingRaw: boolean;
+    intervals: LineInterval[];
+    formattedText: string | null;
+    foldRanges: ReadonlyMap<number, FoldRange> | null;
+    collapsedStarts: ReadonlySet<number>;
+}): string | null {
+    if (
+        input.showingRaw ||
+        !input.formattedText ||
+        input.intervals.length === 0
+    ) {
+        return null;
+    }
+
+    const formattedLines = input.formattedText.split("\n");
+    const expandedIntervals =
+        input.foldRanges && input.foldRanges.size > 0
+            ? expandIntervalsForCollapsedStarts(
+                  input.intervals,
+                  input.foldRanges,
+                  input.collapsedStarts
+              )
+            : input.intervals;
+    const text = buildTextFromIntervals(formattedLines, expandedIntervals);
+    return text.length > 0 ? text : null;
+}
+
+function handleFormattedViewerCopy(event: ClipboardEvent): void {
+    const viewer = getFormattedViewerElement();
+    if (!viewer || showingRaw) return;
+
+    const selection = window.getSelection();
+    if (!selection) return;
+    if (
+        getLineNoFromNode(selection.anchorNode) === null ||
+        getLineNoFromNode(selection.focusNode) === null
+    ) {
+        return;
+    }
+
+    const intervals = getSelectedLineIntervals(selection, viewer);
+    if (intervals.length === 0) return;
+
+    ensureFormattedCache();
+    const copyText = resolveCopyTextForSelection({
+        showingRaw,
+        intervals,
+        formattedText: cachedFormattedText,
+        foldRanges: cachedFoldRanges,
+        collapsedStarts: collapsedFoldStarts,
+    });
+    if (!copyText || !event.clipboardData) return;
+
+    event.clipboardData.setData("text/plain", copyText);
+    event.preventDefault();
 }
 
 function collapseAllFolds(): void {
@@ -597,7 +697,9 @@ function expandAllFolds(): void {
 function attachFoldingHandlers(viewer: HTMLElement): void {
     viewer.addEventListener("click", (e) => {
         const target = e.target as HTMLElement | null;
-        const btn = target?.closest?.(".json-fold-toggle") as HTMLButtonElement | null;
+        const btn = target?.closest?.(
+            ".json-fold-toggle"
+        ) as HTMLButtonElement | null;
         if (!btn) return;
         const start = Number(btn.dataset.foldStart);
         if (!Number.isFinite(start)) return;
@@ -643,11 +745,12 @@ function applyFolds(
         }
     }
 
-    const prevHidden = viewer.__jsonFormtrHidden ?? new Array<boolean>(lineCount).fill(false);
+    const prevHidden =
+        viewer.__jsonFormtrHidden ?? new Array<boolean>(lineCount).fill(false);
     for (let i = 0; i < lineCount; i += 1) {
         if (prevHidden[i] === nextHidden[i]) continue;
         const el = lineEls[i];
-        if (el) el.style.display = nextHidden[i] ? 'none' : '';
+        if (el) el.style.display = nextHidden[i] ? "none" : "";
         prevHidden[i] = nextHidden[i];
     }
     viewer.__jsonFormtrHidden = prevHidden;
@@ -670,7 +773,10 @@ function applyFolds(
         if (btn) {
             btn.classList.toggle("is-collapsed", isCollapsed);
             btn.setAttribute("aria-expanded", isCollapsed ? "false" : "true");
-            btn.setAttribute("aria-label", isCollapsed ? "Expand section" : "Collapse section");
+            btn.setAttribute(
+                "aria-label",
+                isCollapsed ? "Expand section" : "Collapse section"
+            );
         }
     }
 }
@@ -679,13 +785,12 @@ function computeFoldRanges(formatted: string): Map<number, FoldRange> {
     const lines = formatted.split("\n");
     const ranges = new Map<number, FoldRange>();
 
-    const stack: Array<{ open: FoldOpen; startLine: number }> = [];
+    const stack: { open: FoldOpen; startLine: number }[] = [];
     let inString = false;
     let escape = false;
     let line = 1;
 
-    for (let i = 0; i < formatted.length; i += 1) {
-        const ch = formatted[i];
+    for (const ch of formatted) {
         if (ch === "\n") {
             line += 1;
             continue;
@@ -733,7 +838,9 @@ function computeFoldRanges(formatted: string): Map<number, FoldRange> {
 
                 const startLineText = lines[startLine - 1] ?? "";
                 const endLineText = lines[endLine - 1] ?? "";
-                const hasTrailingComma = /[}\]]\s*,\s*$/.test(endLineText.trimEnd());
+                const hasTrailingComma = /[}\]]\s*,\s*$/.test(
+                    endLineText.trimEnd()
+                );
                 const comma = hasTrailingComma ? "," : "";
 
                 const openIdx = findStructuralCharIndex(startLineText, open);
