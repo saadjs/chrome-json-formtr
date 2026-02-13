@@ -652,12 +652,6 @@ function handleFormattedViewerCopy(event: ClipboardEvent): void {
 
     const selection = window.getSelection();
     if (!selection) return;
-    if (
-        getLineNoFromNode(selection.anchorNode) === null ||
-        getLineNoFromNode(selection.focusNode) === null
-    ) {
-        return;
-    }
 
     const intervals = getSelectedLineIntervals(selection, viewer);
     if (intervals.length === 0) return;

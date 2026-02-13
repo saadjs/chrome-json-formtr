@@ -61,24 +61,44 @@ export function getSelectedLineIntervals(
     viewer: HTMLElement
 ): LineInterval[] {
     if (selection.rangeCount === 0 || selection.isCollapsed) return [];
-    if (!selection.anchorNode || !selection.focusNode) return [];
-    if (
-        !viewer.contains(selection.anchorNode) ||
-        !viewer.contains(selection.focusNode)
-    ) {
-        return [];
-    }
 
     const intervals: LineInterval[] = [];
+    const lineEls = Array.from(
+        viewer.querySelectorAll<HTMLElement>(".json-line[data-line-no]")
+    );
     for (let i = 0; i < selection.rangeCount; i += 1) {
         const range = selection.getRangeAt(i);
         const startLine = getLineNoFromNode(range.startContainer);
         const endLine = getLineNoFromNode(range.endContainer);
-        if (startLine === null || endLine === null) continue;
-        intervals.push({
-            start: Math.min(startLine, endLine),
-            end: Math.max(startLine, endLine),
-        });
+        if (startLine !== null && endLine !== null) {
+            intervals.push({
+                start: Math.min(startLine, endLine),
+                end: Math.max(startLine, endLine),
+            });
+            continue;
+        }
+
+        let intervalStart: number | null = null;
+        let intervalEnd: number | null = null;
+
+        for (const lineEl of lineEls) {
+            const rawLineNo = lineEl.dataset.lineNo;
+            if (!rawLineNo) continue;
+            const lineNo = Number(rawLineNo);
+            if (!Number.isFinite(lineNo)) continue;
+            if (!range.intersectsNode(lineEl)) continue;
+
+            if (intervalStart === null || lineNo < intervalStart) {
+                intervalStart = lineNo;
+            }
+            if (intervalEnd === null || lineNo > intervalEnd) {
+                intervalEnd = lineNo;
+            }
+        }
+
+        if (intervalStart !== null && intervalEnd !== null) {
+            intervals.push({ start: intervalStart, end: intervalEnd });
+        }
     }
 
     return mergeLineIntervals(intervals);
