@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "JSON Formtr",
     "description": "Automatically formats raw JSON responses.",
-    "version": "3.1.0",
+    "version": "3.1.1",
     "minimum_chrome_version": "114",
     "permissions": ["storage", "contextMenus"],
     "host_permissions": ["<all_urls>"],
