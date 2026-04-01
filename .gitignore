@@ -143,3 +143,5 @@ json-formtr.zip
 # Playwright
 .playwright-user-data/
 .DS_Store
+
+scripts/
