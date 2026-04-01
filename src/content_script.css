@@ -38,6 +38,13 @@ body {
     font-size: 12px;
     letter-spacing: 0.02em;
     color: var(--line-number-color);
+    display: flex;
+    gap: 6px;
+}
+
+#json-formtr-size::after {
+    content: "·";
+    margin-left: 6px;
 }
 
 .json-toolbar-right {

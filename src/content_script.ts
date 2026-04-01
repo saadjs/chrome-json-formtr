@@ -3,7 +3,6 @@ import { getTheme, generateThemeCSS } from "./themes.js";
 import {
     buildTextFromIntervals as buildTextFromIntervalsImpl,
     expandIntervalsForCollapsedStarts as expandIntervalsForCollapsedStartsImpl,
-    getLineNoFromNode as getLineNoFromNodeImpl,
     getSelectedLineIntervals as getSelectedLineIntervalsImpl,
     type FoldOpen,
     type FoldRange,
@@ -11,6 +10,12 @@ import {
 } from "./fold_copy.js";
 
 let showingRaw = false;
+let sortedKeys = false;
+const sortedKeyOrder = Symbol("sortedKeyOrder");
+
+type SortedObject = Record<string, unknown> & {
+    [sortedKeyOrder]?: string[];
+};
 let originalText = "";
 let currentSettings = { theme: "dark", fontSize: 16 };
 let cachedFormattedHTML: string | null = null;
@@ -19,9 +24,11 @@ let cachedFormattedLineContentHTML: string[] | null = null;
 let cachedFormattedLineCount = 0;
 let cachedFoldRanges: Map<number, FoldRange> | null = null;
 let lineCountEl: HTMLElement | null = null;
+let sizeEl: HTMLElement | null = null;
 let toggleButton: HTMLButtonElement | null = null;
 let collapseAllButton: HTMLButtonElement | null = null;
 let expandAllButton: HTMLButtonElement | null = null;
+let sortButton: HTMLButtonElement | null = null;
 
 type JsonViewerEl = HTMLElement & {
     __jsonFormtrLineEls?: HTMLElement[];
@@ -78,10 +85,64 @@ function isLikelyJsonResponse(): boolean {
 function formatJson(text: string): string {
     try {
         const parsed = JSON.parse(text);
+        if (sortedKeys) {
+            return stringifySorted(sortKeysRecursive(parsed), 0);
+        }
         return JSON.stringify(parsed, null, 2);
     } catch {
         return text;
     }
+}
+
+function sortKeysRecursive(value: unknown): unknown {
+    if (Array.isArray(value)) {
+        return value.map(sortKeysRecursive);
+    }
+    if (value !== null && typeof value === "object") {
+        const obj = value as Record<string, unknown>;
+        const keys = Object.keys(obj).sort();
+        const sorted = Object.create(null) as SortedObject;
+        sorted[sortedKeyOrder] = keys;
+        for (const key of keys) {
+            sorted[key] = sortKeysRecursive(obj[key]);
+        }
+        return sorted as Record<string, unknown>;
+    }
+    return value;
+}
+
+function stringifySorted(value: unknown, indent: number): string {
+    if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+        const obj = value as SortedObject;
+        const keys = obj[sortedKeyOrder] ?? Object.keys(obj);
+        if (keys.length === 0) return "{}";
+        const entries: string[] = [];
+        const pad = " ".repeat(indent);
+        const innerPad = " ".repeat(indent + 2);
+        for (const k of keys) {
+            const v = obj[k];
+            entries.push(
+                `${innerPad}${JSON.stringify(k)}: ${stringifySorted(v, indent + 2)}`
+            );
+        }
+        return `{\n${entries.join(",\n")}\n${pad}}`;
+    }
+    if (Array.isArray(value)) {
+        if (value.length === 0) return "[]";
+        const pad = " ".repeat(indent);
+        const innerPad = " ".repeat(indent + 2);
+        const items = value.map(
+            (item) => `${innerPad}${stringifySorted(item, indent + 2)}`
+        );
+        return `[\n${items.join(",\n")}\n${pad}]`;
+    }
+    return JSON.stringify(value);
+}
+
+function formatByteSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function formatLineCount(count: number): string {
@@ -241,6 +302,14 @@ function createFormattedViewer(html: string, lineCount: number): HTMLElement {
     return viewer;
 }
 
+function invalidateFormattedCache(): void {
+    cachedFormattedHTML = null;
+    cachedFormattedText = null;
+    cachedFormattedLineContentHTML = null;
+    cachedFormattedLineCount = 0;
+    cachedFoldRanges = null;
+}
+
 function ensureFormattedCache(): void {
     if (
         cachedFormattedHTML &&
@@ -352,9 +421,12 @@ function createToolbar(): HTMLElement {
 
     const left = document.createElement("div");
     left.className = "json-toolbar-left";
+    sizeEl = document.createElement("span");
+    sizeEl.id = "json-formtr-size";
+    sizeEl.textContent = formatByteSize(new TextEncoder().encode(originalText).length);
     lineCountEl = document.createElement("span");
     lineCountEl.id = "json-formtr-line-count";
-    left.appendChild(lineCountEl);
+    left.append(sizeEl, lineCountEl);
 
     const right = document.createElement("div");
     right.className = "json-toolbar-right";
@@ -387,6 +459,12 @@ function createToolbar(): HTMLElement {
     expandAllButton.disabled = true;
     expandAllButton.addEventListener("click", expandAllFolds);
 
+    sortButton = document.createElement("button");
+    sortButton.className = "json-toolbar-btn";
+    sortButton.type = "button";
+    sortButton.textContent = "Sort A→Z";
+    sortButton.addEventListener("click", toggleSortKeys);
+
     toggleButton = document.createElement("button");
     toggleButton.className = "json-toolbar-btn";
     toggleButton.type = "button";
@@ -397,6 +475,7 @@ function createToolbar(): HTMLElement {
         downloadButton,
         collapseAllButton,
         expandAllButton,
+        sortButton,
         toggleButton
     );
     toolbar.append(left, right);
@@ -404,6 +483,34 @@ function createToolbar(): HTMLElement {
     updateToggleLabel();
     updateFoldButtonsState();
     return toolbar;
+}
+
+function updateSortLabel(): void {
+    if (sortButton) {
+        sortButton.textContent = sortedKeys ? "Unsort" : "Sort A→Z";
+    }
+}
+
+function toggleSortKeys(): void {
+    if (showingRaw) return;
+
+    sortedKeys = !sortedKeys;
+    collapsedFoldStarts.clear();
+    invalidateFormattedCache();
+    ensureFormattedCache();
+
+    const viewer = document.getElementById("json-format-viewer");
+    if (!viewer || !cachedFormattedHTML) return;
+
+    const formatted = createFormattedViewer(
+        cachedFormattedHTML,
+        cachedFormattedLineCount
+    );
+    viewer.replaceWith(formatted);
+    updateLineCount(cachedFormattedLineCount);
+    attachFoldingHandlers(formatted);
+    updateFoldButtonsState();
+    updateSortLabel();
 }
 
 function toggleRawFormatted() {
@@ -578,6 +685,7 @@ function updateFoldButtonsState(): void {
         !showingRaw && !!cachedFoldRanges && cachedFoldRanges.size > 0;
     if (collapseAllButton) collapseAllButton.disabled = !foldEnabled;
     if (expandAllButton) expandAllButton.disabled = !foldEnabled;
+    if (sortButton) sortButton.disabled = showingRaw;
 }
 
 function getFormattedViewerElement(): HTMLElement | null {
@@ -586,10 +694,6 @@ function getFormattedViewerElement(): HTMLElement | null {
     if (viewer.tagName === "PRE" || viewer.classList.contains("raw"))
         return null;
     return viewer as HTMLElement;
-}
-
-function getLineNoFromNode(node: Node | null): number | null {
-    return getLineNoFromNodeImpl(node);
 }
 
 function getSelectedLineIntervals(
