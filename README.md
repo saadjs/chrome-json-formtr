@@ -4,6 +4,16 @@ A Chrome extension that automatically detects and formats raw JSON responses wit
 
 **Keyboard shortcut:** <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd> (or <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd> on Mac) to toggle between raw and formatted JSON views.
 
+## Features
+
+- Syntax highlighting with 11 built-in themes
+- Collapsible sections with element counts (e.g. `// 3 keys`, `// 12 items`)
+- Sort keys alphabetically (A-Z toggle)
+- Byte size and line count display
+- Copy formatted JSON, download as file
+- URL detection and linkification inside string values
+- Smart copy: copies underlying text even when sections are folded
+
 ## Project Structure
 
 ```
