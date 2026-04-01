@@ -760,6 +760,16 @@ function handleFormattedViewerCopy(event: ClipboardEvent): void {
     const intervals = getSelectedLineIntervals(selection, viewer);
     if (intervals.length === 0) return;
 
+    // If the selection is within a single line and that line is not a collapsed
+    // fold start, let the browser handle the copy natively (partial selection).
+    if (
+        intervals.length === 1 &&
+        intervals[0].start === intervals[0].end &&
+        !collapsedFoldStarts.has(intervals[0].start)
+    ) {
+        return;
+    }
+
     ensureFormattedCache();
     const copyText = resolveCopyTextForSelection({
         showingRaw,
