@@ -779,10 +779,12 @@ function computeFoldRanges(formatted: string): Map<number, FoldRange> {
     const lines = formatted.split("\n");
     const ranges = new Map<number, FoldRange>();
 
-    const stack: { open: FoldOpen; startLine: number }[] = [];
+    const stack: { open: FoldOpen; startLine: number; childCount: number }[] =
+        [];
     let inString = false;
     let escape = false;
     let line = 1;
+    let seenValueAtDepth = false;
 
     for (const ch of formatted) {
         if (ch === "\n") {
@@ -807,11 +809,27 @@ function computeFoldRanges(formatted: string): Map<number, FoldRange> {
 
         if (ch === '"') {
             inString = true;
+            // A string at the current depth means there's a value
+            if (stack.length > 0 && !seenValueAtDepth) {
+                stack[stack.length - 1].childCount += 1;
+                seenValueAtDepth = true;
+            }
             continue;
         }
 
         if (ch === "{" || ch === "[") {
-            stack.push({ open: ch, startLine: line });
+            // An opening bracket at the current depth counts as a value
+            if (stack.length > 0 && !seenValueAtDepth) {
+                stack[stack.length - 1].childCount += 1;
+                seenValueAtDepth = true;
+            }
+            stack.push({ open: ch, startLine: line, childCount: 0 });
+            seenValueAtDepth = false;
+            continue;
+        }
+
+        if (ch === ",") {
+            seenValueAtDepth = false;
             continue;
         }
 
@@ -825,6 +843,10 @@ function computeFoldRanges(formatted: string): Map<number, FoldRange> {
                 stack.splice(s, 1);
                 const startLine = start.startLine;
                 const endLine = line;
+                const childCount = start.childCount;
+
+                // Restore seenValueAtDepth for the parent scope
+                seenValueAtDepth = true;
 
                 // Only fold multi-line ranges with at least one interior line.
                 if (endLine < startLine + 2) break;
@@ -843,19 +865,43 @@ function computeFoldRanges(formatted: string): Map<number, FoldRange> {
                         ? startLineText.slice(0, openIdx + 1).trimEnd()
                         : startLineText.trimEnd();
                 const summaryText = `${prefix} ... ${close}${comma}`;
-                const collapsedLineContentHTML = highlightJsonSyntax(
+                const label =
+                    open === "{"
+                        ? childCount === 1
+                            ? "1 key"
+                            : `${childCount} keys`
+                        : childCount === 1
+                          ? "1 item"
+                          : `${childCount} items`;
+                const countHTML = `<span class="json-fold-count">// ${label}</span>`;
+                const baseHTML = highlightJsonSyntax(
                     escapeHtml(summaryText === "" ? "\u200B" : summaryText)
                 );
+                const collapsedLineContentHTML = `${baseHTML} ${countHTML}`;
 
                 ranges.set(startLine, {
                     startLine,
                     endLine,
                     open,
                     close,
+                    childCount,
                     collapsedLineContentHTML,
                 });
                 break;
             }
+        }
+
+        // Non-string, non-structural characters (digits, true, false, null)
+        // count as values at the current depth
+        if (
+            stack.length > 0 &&
+            !seenValueAtDepth &&
+            ch !== " " &&
+            ch !== "\t" &&
+            ch !== ":"
+        ) {
+            stack[stack.length - 1].childCount += 1;
+            seenValueAtDepth = true;
         }
     }
 

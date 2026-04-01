@@ -260,6 +260,14 @@ body {
     /* Optional subtle styling for collapsed lines */
 }
 
+.json-fold-count {
+    color: var(--line-number-color);
+    opacity: 0.7;
+    font-style: italic;
+    margin-left: 4px;
+    user-select: none;
+}
+
 @media (max-width: 520px) {
     #json-formtr-toolbar {
         flex-wrap: wrap;

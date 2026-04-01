@@ -5,6 +5,7 @@ export interface FoldRange {
     endLine: number;
     open: FoldOpen;
     close: FoldClose;
+    childCount: number;
     collapsedLineContentHTML: string;
 }
 
