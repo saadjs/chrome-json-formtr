@@ -106,6 +106,27 @@ export function getSelectedLineIntervals(
     return mergeLineIntervals(intervals);
 }
 
+export function getCollapsedSummaryTextForLine(
+    viewer: HTMLElement,
+    lineNo: number
+): string | null {
+    const lineEl = viewer.querySelector<HTMLElement>(
+        `.json-line[data-line-no="${lineNo}"]`
+    );
+    const contentEl = lineEl?.querySelector<HTMLElement>(".json-line-content");
+    if (!contentEl) return null;
+
+    const summaryNodes = Array.from(contentEl.childNodes).filter((node) => {
+        if (!(node instanceof HTMLElement)) return true;
+        return !node.classList.contains("json-fold-count");
+    });
+
+    const summaryText = summaryNodes.map((node) => node.textContent ?? "").join(
+        ""
+    );
+    return summaryText.length > 0 ? summaryText : null;
+}
+
 export function expandIntervalsForCollapsedStarts(
     intervals: LineInterval[],
     foldRanges: ReadonlyMap<number, FoldRange>,

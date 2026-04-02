@@ -3,6 +3,7 @@ import { getTheme, generateThemeCSS } from "./themes.js";
 import {
     buildTextFromIntervals as buildTextFromIntervalsImpl,
     expandIntervalsForCollapsedStarts as expandIntervalsForCollapsedStartsImpl,
+    getCollapsedSummaryTextForLine as getCollapsedSummaryTextForLineImpl,
     getSelectedLineIntervals as getSelectedLineIntervalsImpl,
     type FoldOpen,
     type FoldRange,
@@ -837,7 +838,9 @@ function createPathBar(): HTMLElement {
             navigator.clipboard
                 .writeText(path)
                 .then(() => showToast("Copied path"))
-                .catch(() => {});
+                .catch(() => {
+                    // Ignore clipboard copy errors
+                });
         }
     });
     bar.addEventListener("mouseleave", (e) => {
@@ -934,6 +937,13 @@ function getSelectedLineIntervals(
     return getSelectedLineIntervalsImpl(selection, viewer);
 }
 
+function getCollapsedSummaryTextForLine(
+    viewer: HTMLElement,
+    lineNo: number
+): string | null {
+    return getCollapsedSummaryTextForLineImpl(viewer, lineNo);
+}
+
 function expandIntervalsForCollapsedStarts(
     intervals: LineInterval[],
     foldRanges: ReadonlyMap<number, FoldRange>,
@@ -991,14 +1001,19 @@ function handleFormattedViewerCopy(event: ClipboardEvent): void {
     const intervals = getSelectedLineIntervals(selection, viewer);
     if (intervals.length === 0) return;
 
-    // If the selection is within a single line and that line is not a collapsed
-    // fold start, let the browser handle the copy natively (partial selection).
-    if (
-        intervals.length === 1 &&
-        intervals[0].start === intervals[0].end &&
-        !collapsedFoldStarts.has(intervals[0].start)
-    ) {
-        return;
+    if (intervals.length === 1 && intervals[0].start === intervals[0].end) {
+        const lineNo = intervals[0].start;
+        if (!collapsedFoldStarts.has(lineNo)) return;
+
+        const selectedText = selection.toString().trim();
+        const collapsedSummaryText = getCollapsedSummaryTextForLine(
+            viewer,
+            lineNo
+        )?.trim();
+
+        if (!selectedText || selectedText !== collapsedSummaryText) {
+            return;
+        }
     }
 
     ensureFormattedCache();
