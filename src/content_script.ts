@@ -23,12 +23,14 @@ let cachedFormattedText: string | null = null;
 let cachedFormattedLineContentHTML: string[] | null = null;
 let cachedFormattedLineCount = 0;
 let cachedFoldRanges: Map<number, FoldRange> | null = null;
+let cachedJsonPaths: string[] | null = null;
 let lineCountEl: HTMLElement | null = null;
 let sizeEl: HTMLElement | null = null;
 let toggleButton: HTMLButtonElement | null = null;
 let collapseAllButton: HTMLButtonElement | null = null;
-let expandAllButton: HTMLButtonElement | null = null;
+let depthButtons: HTMLButtonElement[] = [];
 let sortButton: HTMLButtonElement | null = null;
+let pathBarEl: HTMLElement | null = null;
 
 type JsonViewerEl = HTMLElement & {
     __jsonFormtrLineEls?: HTMLElement[];
@@ -45,6 +47,13 @@ function injectCSS() {
     document.head.appendChild(style);
 }
 
+function resolveThemeId(themeId: string): string {
+    if (themeId !== "auto") return themeId;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+}
+
 function injectThemeCSS(theme: string, fontSize: number) {
     // Remove existing theme CSS
     const existingThemeStyle = document.getElementById("json-formtr-theme-css");
@@ -55,7 +64,10 @@ function injectThemeCSS(theme: string, fontSize: number) {
     // Inject new theme CSS
     const themeStyle = document.createElement("style");
     themeStyle.id = "json-formtr-theme-css";
-    themeStyle.textContent = generateThemeCSS(getTheme(theme), fontSize);
+    themeStyle.textContent = generateThemeCSS(
+        getTheme(resolveThemeId(theme)),
+        fontSize
+    );
     document.head.appendChild(themeStyle);
 }
 
@@ -264,6 +276,105 @@ function linkifyUrls(str: string): string {
     return `&quot;${linkified}&quot;`;
 }
 
+function computeJsonPaths(formatted: string): string[] {
+    const lines = formatted.split("\n");
+    const paths: string[] = new Array(lines.length).fill("");
+
+    interface PathContext {
+        type: "object" | "array";
+        path: string;
+        arrayIndex: number;
+    }
+
+    const stack: PathContext[] = [];
+
+    function currentPath(): string {
+        return stack.length > 0 ? stack[stack.length - 1].path : "$";
+    }
+
+    function makeKeyPath(parentPath: string, key: string): string {
+        if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key)) {
+            return `${parentPath}.${key}`;
+        }
+        return `${parentPath}[${JSON.stringify(key)}]`;
+    }
+
+    for (let i = 0; i < lines.length; i++) {
+        const trimmed = lines[i].trim();
+        if (!trimmed) {
+            paths[i] = currentPath();
+            continue;
+        }
+
+        // Closing bracket
+        if (trimmed[0] === "}" || trimmed[0] === "]") {
+            paths[i] = currentPath();
+            stack.pop();
+            continue;
+        }
+
+        // Key-value pair: "key": ...
+        const keyMatch = trimmed.match(/^"((?:[^"\\]|\\.)*)"\s*:\s*(.*)/);
+
+        if (keyMatch) {
+            // Reuse JSON's own string parser so escaped keys round-trip
+            // correctly when we later rebuild bracket notation paths.
+            const key = JSON.parse(`"${keyMatch[1]}"`) as string;
+            const parentPath = currentPath();
+            const thisPath = makeKeyPath(parentPath, key);
+            paths[i] = thisPath;
+
+            const rest = keyMatch[2].replace(/,\s*$/, "").trim();
+            if (rest === "{") {
+                stack.push({
+                    type: "object",
+                    path: thisPath,
+                    arrayIndex: 0,
+                });
+            } else if (rest === "[") {
+                stack.push({ type: "array", path: thisPath, arrayIndex: 0 });
+            }
+            continue;
+        }
+
+        // Array element or root bracket
+        const parentCtx = stack.length > 0 ? stack[stack.length - 1] : null;
+
+        if (parentCtx && parentCtx.type === "array") {
+            const thisPath = `${parentCtx.path}[${parentCtx.arrayIndex}]`;
+            parentCtx.arrayIndex++;
+            paths[i] = thisPath;
+
+            const rest = trimmed.replace(/,\s*$/, "").trim();
+            if (rest === "{") {
+                stack.push({
+                    type: "object",
+                    path: thisPath,
+                    arrayIndex: 0,
+                });
+            } else if (rest === "[") {
+                stack.push({ type: "array", path: thisPath, arrayIndex: 0 });
+            }
+            continue;
+        }
+
+        // Root bracket
+        if (trimmed === "{" || trimmed === "[") {
+            paths[i] = "$";
+            stack.push({
+                type: trimmed === "{" ? "object" : "array",
+                path: "$",
+                arrayIndex: 0,
+            });
+            continue;
+        }
+
+        paths[i] = currentPath();
+    }
+
+    return paths;
+}
+
 function buildFormattedHTML(formatted: string): {
     html: string;
     lineCount: number;
@@ -271,6 +382,7 @@ function buildFormattedHTML(formatted: string): {
 } {
     const lines = formatted.split("\n");
     const foldRanges = cachedFoldRanges ?? new Map<number, FoldRange>();
+    const paths = cachedJsonPaths ?? [];
     const lineContentHTML: string[] = new Array(lines.length);
     const html = lines
         .map((line, i) => {
@@ -282,9 +394,14 @@ function buildFormattedHTML(formatted: string): {
             const foldToggle = hasFold
                 ? `<button class="json-fold-toggle" type="button" data-fold-start="${lineNo}" aria-label="Collapse section" aria-expanded="true"></button>`
                 : `<span class="json-fold-spacer" aria-hidden="true"></span>`;
-            return `<div class="json-line" data-line-no="${lineNo}">
+            const path = paths[i] ?? "";
+            const escapedPath = escapeHtml(path);
+            const indentDepth = Math.floor(
+                (line.length - line.trimStart().length) / 2
+            );
+            return `<div class="json-line" data-line-no="${lineNo}" data-path="${escapedPath}">
                 <span class="json-line-number">${foldToggle}<span class="json-line-num">${lineNo}</span></span>
-                <span class="json-line-content">${highlightedLine}</span>
+                <span class="json-line-content" style="--indent-depth: ${indentDepth}">${highlightedLine}</span>
             </div>`;
         })
         .join("");
@@ -308,6 +425,7 @@ function invalidateFormattedCache(): void {
     cachedFormattedLineContentHTML = null;
     cachedFormattedLineCount = 0;
     cachedFoldRanges = null;
+    cachedJsonPaths = null;
 }
 
 function ensureFormattedCache(): void {
@@ -315,11 +433,13 @@ function ensureFormattedCache(): void {
         cachedFormattedHTML &&
         cachedFormattedText &&
         cachedFormattedLineContentHTML &&
-        cachedFoldRanges
+        cachedFoldRanges &&
+        cachedJsonPaths
     )
         return;
     cachedFormattedText = formatJson(originalText);
     cachedFoldRanges = computeFoldRanges(cachedFormattedText);
+    cachedJsonPaths = computeJsonPaths(cachedFormattedText);
     const formatted = buildFormattedHTML(cachedFormattedText);
     cachedFormattedHTML = formatted.html;
     cachedFormattedLineCount = formatted.lineCount;
@@ -452,12 +572,34 @@ function createToolbar(): HTMLElement {
     collapseAllButton.disabled = true;
     collapseAllButton.addEventListener("click", collapseAllFolds);
 
-    expandAllButton = document.createElement("button");
-    expandAllButton.className = "json-toolbar-btn";
-    expandAllButton.type = "button";
-    expandAllButton.textContent = "Expand all";
-    expandAllButton.disabled = true;
-    expandAllButton.addEventListener("click", expandAllFolds);
+    const depthGroup = document.createElement("div");
+    depthGroup.className = "json-depth-group";
+
+    const depthLabel = document.createElement("span");
+    depthLabel.className = "json-depth-label";
+    depthLabel.textContent = "Depth:";
+    depthGroup.appendChild(depthLabel);
+
+    depthButtons = [];
+    const depthLevels = [1, 2, 3];
+    for (const level of depthLevels) {
+        const btn = document.createElement("button");
+        btn.className = "json-toolbar-btn json-depth-btn";
+        btn.type = "button";
+        btn.textContent = String(level);
+        btn.disabled = true;
+        btn.addEventListener("click", () => collapseToDepth(level));
+        depthGroup.appendChild(btn);
+        depthButtons.push(btn);
+    }
+    const allBtn = document.createElement("button");
+    allBtn.className = "json-toolbar-btn json-depth-btn";
+    allBtn.type = "button";
+    allBtn.textContent = "All";
+    allBtn.disabled = true;
+    allBtn.addEventListener("click", expandAllFolds);
+    depthGroup.appendChild(allBtn);
+    depthButtons.push(allBtn);
 
     sortButton = document.createElement("button");
     sortButton.className = "json-toolbar-btn";
@@ -474,7 +616,7 @@ function createToolbar(): HTMLElement {
         copyButton,
         downloadButton,
         collapseAllButton,
-        expandAllButton,
+        depthGroup,
         sortButton,
         toggleButton
     );
@@ -496,6 +638,7 @@ function toggleSortKeys(): void {
 
     sortedKeys = !sortedKeys;
     collapsedFoldStarts.clear();
+    hidePathBar();
     invalidateFormattedCache();
     ensureFormattedCache();
 
@@ -509,6 +652,7 @@ function toggleSortKeys(): void {
     viewer.replaceWith(formatted);
     updateLineCount(cachedFormattedLineCount);
     attachFoldingHandlers(formatted);
+    attachPathHover(formatted);
     updateFoldButtonsState();
     updateSortLabel();
 }
@@ -529,6 +673,7 @@ function toggleRawFormatted() {
             viewer.replaceWith(formatted);
             updateLineCount(cachedFormattedLineCount);
             attachFoldingHandlers(formatted);
+            attachPathHover(formatted);
             applyFoldsIfNeeded(formatted);
         }
         showingRaw = false;
@@ -537,6 +682,7 @@ function toggleRawFormatted() {
         console.log("[JSON Formtr] Switched to formatted view");
     } else {
         // Switch to raw
+        hidePathBar();
         const rawViewer = document.createElement("pre");
         rawViewer.id = "json-format-viewer";
         rawViewer.className = "raw";
@@ -583,6 +729,18 @@ function init() {
         // Store original content
         originalText = document.body.innerText.trim();
 
+        // Expose parsed JSON on window.data for console access
+        try {
+            const parsed = JSON.parse(originalText);
+            (window as unknown as Record<string, unknown>).data = parsed;
+            console.log(
+                "[JSON Formtr] Parsed JSON available as %cwindow.data",
+                "font-weight: bold; color: #58a6ff"
+            );
+        } catch {
+            // Not valid JSON, skip
+        }
+
         // Clear body and add formatted content
         document.body.innerHTML = "";
 
@@ -601,6 +759,7 @@ function init() {
         document.body.appendChild(viewer);
         updateLineCount(cachedFormattedLineCount);
         attachFoldingHandlers(viewer);
+        attachPathHover(viewer);
         applyFoldsIfNeeded(viewer);
         updateFoldButtonsState();
 
@@ -657,6 +816,76 @@ function init() {
         } catch {
             // Ignore if chrome.storage not available
         }
+
+        // Listen for OS color scheme changes (for auto theme)
+        window
+            .matchMedia("(prefers-color-scheme: dark)")
+            .addEventListener("change", () => {
+                if (currentSettings.theme === "auto") {
+                    injectThemeCSS("auto", currentSettings.fontSize);
+                }
+            });
+    });
+}
+
+function createPathBar(): HTMLElement {
+    const bar = document.createElement("div");
+    bar.className = "json-path-bar";
+    bar.addEventListener("click", () => {
+        const path = bar.textContent;
+        if (path) {
+            navigator.clipboard
+                .writeText(path)
+                .then(() => showToast("Copied path"))
+                .catch(() => {});
+        }
+    });
+    bar.addEventListener("mouseleave", (e) => {
+        const nextTarget = e.relatedTarget as Node | null;
+        const viewer = getFormattedViewerElement();
+        if (viewer && nextTarget && viewer.contains(nextTarget)) {
+            return;
+        }
+        hidePathBar();
+    });
+    document.body.appendChild(bar);
+    return bar;
+}
+
+function hidePathBar(): void {
+    if (!pathBarEl) return;
+    pathBarEl.classList.remove("visible");
+    pathBarEl.textContent = "";
+}
+
+function attachPathHover(viewer: HTMLElement): void {
+    if (!pathBarEl) {
+        pathBarEl = createPathBar();
+    }
+
+    viewer.addEventListener("mouseover", (e) => {
+        if (!pathBarEl || showingRaw) return;
+        const target = e.target as HTMLElement;
+        const line = target.closest(".json-line") as HTMLElement | null;
+        if (!line) {
+            hidePathBar();
+            return;
+        }
+        const path = line.dataset.path;
+        if (!path || path === "$") {
+            hidePathBar();
+            return;
+        }
+        pathBarEl.textContent = path;
+        pathBarEl.classList.add("visible");
+    });
+
+    viewer.addEventListener("mouseleave", (e) => {
+        const nextTarget = e.relatedTarget as Node | null;
+        if (pathBarEl && nextTarget && pathBarEl.contains(nextTarget)) {
+            return;
+        }
+        hidePathBar();
     });
 }
 
@@ -684,7 +913,9 @@ function updateFoldButtonsState(): void {
     const foldEnabled =
         !showingRaw && !!cachedFoldRanges && cachedFoldRanges.size > 0;
     if (collapseAllButton) collapseAllButton.disabled = !foldEnabled;
-    if (expandAllButton) expandAllButton.disabled = !foldEnabled;
+    for (const btn of depthButtons) {
+        btn.disabled = !foldEnabled;
+    }
     if (sortButton) sortButton.disabled = showingRaw;
 }
 
@@ -789,8 +1020,25 @@ function collapseAllFolds(): void {
     if (!viewer) return;
     ensureFormattedCache();
     if (!cachedFoldRanges) return;
+
+    collapsedFoldStarts.clear();
     for (const startLine of cachedFoldRanges.keys()) {
         collapsedFoldStarts.add(startLine);
+    }
+    applyFoldsIfNeeded(viewer);
+}
+
+function collapseToDepth(maxDepth: number): void {
+    const viewer = getFormattedViewerElement();
+    if (!viewer) return;
+    ensureFormattedCache();
+    if (!cachedFoldRanges) return;
+
+    collapsedFoldStarts.clear();
+    for (const [startLine, range] of cachedFoldRanges) {
+        if (range.depth >= maxDepth) {
+            collapsedFoldStarts.add(startLine);
+        }
     }
     applyFoldsIfNeeded(viewer);
 }
@@ -893,8 +1141,12 @@ function computeFoldRanges(formatted: string): Map<number, FoldRange> {
     const lines = formatted.split("\n");
     const ranges = new Map<number, FoldRange>();
 
-    const stack: { open: FoldOpen; startLine: number; childCount: number }[] =
-        [];
+    const stack: {
+        open: FoldOpen;
+        startLine: number;
+        childCount: number;
+        depth: number;
+    }[] = [];
     let inString = false;
     let escape = false;
     let line = 1;
@@ -937,7 +1189,12 @@ function computeFoldRanges(formatted: string): Map<number, FoldRange> {
                 stack[stack.length - 1].childCount += 1;
                 seenValueAtDepth = true;
             }
-            stack.push({ open: ch, startLine: line, childCount: 0 });
+            stack.push({
+                open: ch,
+                startLine: line,
+                childCount: 0,
+                depth: stack.length,
+            });
             seenValueAtDepth = false;
             continue;
         }
@@ -999,6 +1256,7 @@ function computeFoldRanges(formatted: string): Map<number, FoldRange> {
                     open,
                     close,
                     childCount,
+                    depth: start.depth,
                     collapsedLineContentHTML,
                 });
                 break;

@@ -138,6 +138,33 @@ body {
     white-space: pre-wrap;
     overflow-wrap: break-word;
     word-break: break-all;
+    position: relative;
+}
+
+/* Indent Guide Lines */
+.json-line-content::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(var(--indent-depth, 0) * 2ch);
+    height: 100%;
+    pointer-events: none;
+    background-image: repeating-linear-gradient(
+        to right,
+        transparent 0 calc(2ch - 1px),
+        color-mix(in srgb, var(--fg, #d4d4d4) 8%, transparent) calc(2ch - 1px)
+            2ch
+    );
+}
+
+.json-line:hover .json-line-content::before {
+    background-image: repeating-linear-gradient(
+        to right,
+        transparent 0 calc(2ch - 1px),
+        color-mix(in srgb, var(--fg, #d4d4d4) 22%, transparent) calc(2ch - 1px)
+            2ch
+    );
 }
 
 /* JSON Syntax Highlighting */
@@ -273,6 +300,62 @@ body {
     font-style: italic;
     margin-left: 4px;
     user-select: none;
+}
+
+/* Depth Button Group */
+.json-depth-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.json-depth-label {
+    font-size: 11px;
+    color: var(--line-number-color);
+    margin-right: 2px;
+    user-select: none;
+}
+
+.json-depth-btn {
+    min-width: 28px;
+    padding: 6px 6px;
+    text-align: center;
+}
+
+/* JSON Path Bar */
+.json-path-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 5px 16px;
+    background: color-mix(in srgb, var(--bg, #1e1e1e) 92%, #000 8%);
+    border-top: 1px solid
+        color-mix(in srgb, var(--fg, #d4d4d4) 15%, transparent);
+    font-family:
+        ui-monospace, SFMono-Regular, Menlo, Monaco, "Cascadia Code",
+        "Roboto Mono", Consolas, "Courier New", monospace;
+    font-size: 12px;
+    color: color-mix(in srgb, var(--fg, #d4d4d4) 80%, transparent);
+    z-index: 25;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(100%);
+    transition:
+        opacity 0.15s ease,
+        transform 0.15s ease;
+    pointer-events: none;
+}
+
+.json-path-bar.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.json-path-bar:hover {
+    color: var(--fg, #d4d4d4);
+    background: color-mix(in srgb, var(--bg, #1e1e1e) 85%, #000 15%);
 }
 
 @media (max-width: 520px) {

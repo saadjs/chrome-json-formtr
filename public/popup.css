@@ -145,6 +145,18 @@ main {
     overflow: hidden;
 }
 
+/* Auto/System Theme */
+.auto-theme .theme-sample {
+    background: linear-gradient(135deg, #1e1e1e 50%, #fafafa 50%);
+    color: #d4d4d4;
+}
+.auto-theme .json-key {
+    color: #9cdcfe;
+}
+.auto-theme .json-string {
+    color: #ce9178;
+}
+
 /* Dark Themes */
 .dark-theme .theme-sample {
     background: #1e1e1e;
